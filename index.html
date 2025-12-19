@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rust Evolution - Serveurs Experimental | Survie Hardcore</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #fff;
+            background: #0a0a0a;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid #d4380d;
+            box-shadow: 0 4px 20px rgba(212, 56, 13, 0.3);
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #d4380d;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(212, 56, 13, 0.5);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .nav-links a:hover {
+            color: #d4380d;
+            text-shadow: 0 0 10px rgba(212, 56, 13, 0.5);
+        }
+
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23151515"/></svg>');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            padding: 180px 2rem 120px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(212, 56, 13, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(212, 56, 13, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            margin-bottom: 1.5rem;
+            color: #d4380d;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(212, 56, 13, 0.5), 0 0 40px rgba(212, 56, 13, 0.3);
+            animation: glowText 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowText {
+            from { text-shadow: 0 0 20px rgba(212, 56, 13, 0.5), 0 0 40px rgba(212, 56, 13, 0.3); }
+            to { text-shadow: 0 0 30px rgba(212, 56, 13, 0.8), 0 0 60px rgba(212, 56, 13, 0.5); }
+        }
+
+        .hero .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #ccc;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+            color: #aaa;
+            line-height: 1.8;
+        }
+
+        .server-status {
+            display: inline-block;
+            background: rgba(212, 56, 13, 0.2);
+            border: 2px solid #d4380d;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+        }
+
+        .status-online {
+            color: #52c41a;
+            font-weight: bold;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #d4380d 0%, #a82e0a 100%);
+            color: white;
+            padding: 1.2rem 3rem;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(212, 56, 13, 0.4);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(212, 56, 13, 0.6);
+            background: linear-gradient(135deg, #ff4d17 0%, #d4380d 100%);
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            border: 2px solid #d4380d;
+        }
+
+        .cta-button.secondary:hover {
+            background: #d4380d;
+        }
+
+        .features {
+            padding: 100px 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #d4380d;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .features-intro {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #999;
+            margin-bottom: 4rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(30, 30, 30, 0.9) 0%, rgba(20, 20, 20, 0.9) 100%);
+            padding: 2.5rem;
+            border-radius: 15px;
+            border: 1px solid rgba(212, 56, 13, 0.3);
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #d4380d, #ff4d17);
+            transform: scaleX(0);
+            transition: transform 0.4s;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: #d4380d;
+            box-shadow: 0 15px 40px rgba(212, 56, 13, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            color: #d4380d;
+            margin-bottom: 1rem;
+            font-size: 1.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .feature-card p {
+            color: #ccc;
+            line-height: 1.8;
+        }
+
+        .server-info {
+            background: linear-gradient(135deg, rgba(212, 56, 13, 0.1) 0%, rgba(10, 10, 10, 0.8) 100%);
+            padding: 80px 2rem;
+            border-top: 2px solid #d4380d;
+            border-bottom: 2px solid #d4380d;
+        }
+
+        .info-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            text-align: center;
+        }
+
+        .info-item h3 {
+            font-size: 3.5rem;
+            color: #d4380d;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(212, 56, 13, 0.5);
+        }
+
+        .info-item p {
+            color: #aaa;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .rules {
+            padding: 100px 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .rules h2 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 3rem;
+            color: #d4380d;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .rules-list {
+            background: rgba(30, 30, 30, 0.5);
+            padding: 3rem;
+            border-radius: 15px;
+            border: 1px solid rgba(212, 56, 13, 0.3);
+        }
+
+        .rules-list ul {
+            list-style: none;
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .rules-list li {
+            padding-left: 2rem;
+            position: relative;
+            color: #ccc;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .rules-list li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: #d4380d;
+            font-size: 1.5rem;
+        }
+
+        footer {
+            background: rgba(10, 10, 10, 0.95);
+            border-top: 2px solid #d4380d;
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-content p {
+            color: #999;
+            margin-bottom: 1rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .social-links a {
+            color: #d4380d;
+            font-size: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            color: #ff4d17;
+            transform: scale(1.2);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.8rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">RUST EVOLUTION</div>
+            <ul class="nav-links">
+                <li><a href="#accueil">Accueil</a></li>
+                <li><a href="#features">Caractéristiques</a></li>
+                <li><a href="#regles">Règles</a></li>
+                <li><a href="#discord">Discord</a></li>
+                <li><a href="#boutique">Boutique</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>RUST EVOLUTION</h1>
+            <p class="subtitle">Serveurs Experimental | Survie Hardcore</p>
+            <p>Rejoignez l'expérience de survie la plus intense sur Rust. Serveurs optimisés, communauté active et gameplay équilibré vous attendent.</p>
+            
+            <div class="server-status">
+                <span class="status-online">● EN LIGNE</span> - 47/100 joueurs connectés
+            </div>
+
+            <div class="cta-buttons">
+                <a href="#" class="cta-button">Rejoindre le serveur</a>
+                <a href="#" class="cta-button secondary">Voir la carte</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <h2>Pourquoi nous rejoindre ?</h2>
+        <p class="features-intro">Une expérience Rust unique avec des fonctionnalités exclusives</p>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎮</div>
+                <h3>Serveur Experimental</h3>
+                <p>Profitez des dernières mises à jour et fonctionnalités expérimentales de Rust en avant-première avec une stabilité optimale.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Performance Optimale</h3>
+                <p>Serveurs hébergés sur hardware haute performance garantissant un gameplay fluide sans lag, même lors des raids massifs.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Anti-Cheat Actif</h3>
+                <p>Système anti-triche renforcé et équipe de modération disponible 24/7 pour garantir une expérience de jeu équitable.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🗺️</div>
+                <h3>Map Procédurale</h3>
+                <p>Nouvelle carte générée chaque wipe avec monuments custom et zones PvP/PvE dédiées pour un gameplay varié.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Communauté FR</h3>
+                <p>Communauté francophone active et accueillante avec Discord organisé, events réguliers et système de clans.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🎁</div>
+                <h3>Système de Récompenses</h3>
+                <p>Gagnez des points en jouant et débloquez des skins, kits de démarrage et avantages exclusifs dans la boutique.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="server-info">
+        <div class="info-container">
+            <div class="info-item">
+                <h3>100</h3>
+                <p>Slots disponibles</p>
+            </div>
+            <div class="info-item">
+                <h3>2x</h3>
+                <p>Taux de récolte</p>
+            </div>
+            <div class="info-item">
+                <h3>7J</h3>
+                <p>Cycle de wipe</p>
+            </div>
+            <div class="info-item">
+                <h3>24/7</h3>
+                <p>Support actif</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="rules" id="regles">
+        <h2>Règles du serveur</h2>
+        <div class="rules-list">
+            <ul>
+                <li>Respect obligatoire envers tous les joueurs et l'équipe d'administration</li>
+                <li>Interdiction formelle de toute forme de triche, hack ou exploitation de bugs</li>
+                <li>Le spam vocal et textuel est sanctionné immédiatement</li>
+                <li>Les propos racistes, homophobes ou discriminatoires entraînent un ban définitif</li>
+                <li>Le stream sniping et le ghosting sont strictement interdits</li>
+                <li>Maximum 5 joueurs par clan pour maintenir l'équilibre du serveur</li>
+                <li>Les raids sont autorisés mais le grief excessif est sanctionné</li>
+                <li>Respectez les zones safe et les événements organisés par les admins</li>
+            </ul>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 Rust Evolution - Tous droits réservés</p>
+            <p>Serveur non affilié à Facepunch Studios</p>
+            <div class="social-links">
+                <a href="#">Discord</a>
+                <a href="#">Twitter</a>
+                <a href="#">YouTube</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
